@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>VapeHouse</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      background:#000;
+      color:#fff;
+      padding:20px 16px 40px;
+    }
+    header {
+      text-align:center;
+      margin-bottom:24px;
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:1px;
+    }
+    #products {
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    .product {
+      background:#111;
+      border-radius:16px;
+      overflow:hidden;
+      box-shadow:0 14px 40px rgba(0,0,0,0.7);
+    }
+    .product img {
+      width:100%;
+      height:230px;
+      object-fit:cover;
+      display:block;
+    }
+    .info {
+      padding:14px 14px 12px;
+    }
+    .name {
+      font-size:16px;
+      font-weight:600;
+      margin-bottom:6px;
+    }
+    .price {
+      font-size:18px;
+      font-weight:700;
+      color:#12ff80;
+      margin-bottom:10px;
+    }
+    button {
+      width:100%;
+      padding:11px 14px;
+      background:#12ff80;
+      color:#000;
+      border:none;
+      border-radius:12px;
+      font-size:15px;
+      font-weight:600;
+      cursor:pointer;
+      outline:none;
+      transition:background 0.1s, transform 0.1s;
+    }
+    button:active {
+      background:#0fd46a;
+      transform:scale(0.98);
+    }
+    .badge {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      color:#aaa;
+      margin-bottom:6px;
+    }
+    .dot {
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:#12ff80;
+      box-shadow:0 0 10px rgba(18,255,128,0.7);
+    }
+    .subtext {
+      font-size:12px;
+      color:#888;
+      margin-bottom:18px;
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+  <header>VAPEHOUSE</header>
+  <div class="subtext">Минималистичный вейп-шоп прямо в Telegram</div>
+
+  <div id="products"></div>
+
+  <script src="data.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    const productsDiv = document.getElementById('products');
+
+    let cart = [];
+
+    function renderProducts() {
+      productsDiv.innerHTML = '';
+      products.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.innerHTML = `
+          <img src="${p.img}" alt="${p.name}">
+          <div class="info">
+            <div class="badge"><span class="dot"></span><span>VAPE • ${p.ml || ''} ${p.nic || ''}</span></div>
+            <div class="name">${p.name}</div>
+            <div class="price">${p.price} ₽</div>
+            <button type="button" data-id="${p.id}">В корзину</button>
+          </div>
+        `;
+        const btn = div.querySelector('button');
+        btn.addEventListener('click', () => addToCart(p.id));
+        productsDiv.appendChild(div);
+      });
+    }
+
+    function updateMainButton() {
+      if (!tg) return;
+      const total = cart.reduce((s, p) => s + p.price, 0);
+      const btn = tg.MainButton;
+
+      if (cart.length === 0) {
+        btn.hide();
+        return;
+      }
+
+      btn.setText(`Корзина (${cart.length}) • ${total} ₽`);
+      btn.show();
+    }
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+
+      cart.push(product);
+
+      try {
+        tg.HapticFeedback?.notificationOccurred('success');
+      } catch (e) {
+        // игнорируем, если не поддерживается
+      }
+
+      updateMainButton();
+    }
+
+    function sendOrder() {
+      if (!tg || cart.length === 0) return;
+
+      const total = cart.reduce((s, p) => s + p.price, 0);
+
+      tg.sendData(JSON.stringify({
+        items: cart,
+        total,
+        user: tg.initDataUnsafe?.user || null
+      }));
+
+      tg.close();
+    }
+
+    if (tg) {
+      tg.expand();
+      tg.MainButton.onClick(sendOrder);
+      tg.ready();
+    }
+
+    renderProducts();
+  </script>
+</body>
+</html>
+
+
