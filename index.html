@@ -102,12 +102,27 @@
 
   <div id="products"></div>
 
-  <script src="data.js"></script>
   <script>
     const tg = window.Telegram.WebApp;
     const productsDiv = document.getElementById('products');
+    // ВАЖНО: пока API работает по http://72.56.80.76, Mini App в Telegram (https)
+    // может блокировать такие запросы. В браузере по http всё будет ок.
+    const API_URL = 'http://72.56.80.76/api/products';
 
+    let products = [];
     let cart = [];
+
+    async function loadProducts() {
+      productsDiv.innerHTML = '<div style="text-align:center; color:#777; margin-top:12px;">Загрузка каталога...</div>';
+      try {
+        const res = await fetch(API_URL);
+        products = await res.json();
+        renderProducts();
+      } catch (e) {
+        console.error(e);
+        productsDiv.innerHTML = '<div style="text-align:center; color:#f55; margin-top:12px;">Ошибка загрузки каталога</div>';
+      }
+    }
 
     function renderProducts() {
       productsDiv.innerHTML = '';
@@ -178,7 +193,7 @@
       tg.ready();
     }
 
-    renderProducts();
+    loadProducts();
   </script>
 </body>
 </html>
