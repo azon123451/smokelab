@@ -12,8 +12,8 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-      background:#000;
-      color:#fff;
+      background:#f5f5f5; /* Светлый фон */
+      color:#000; /* Чёрный текст */
       padding:20px 16px 40px;
     }
     header {
@@ -22,6 +22,7 @@
       font-size:22px;
       font-weight:800;
       letter-spacing:1px;
+      color:#000; /* Тёмный текст */
     }
     #products {
       margin-top:12px;
@@ -32,10 +33,10 @@
       gap:12px;
     }
     .product {
-      background:#111;
+      background:#fff; /* Белый фон карточки */
       border-radius:16px;
       overflow:hidden;
-      box-shadow:0 14px 40px rgba(0,0,0,0.7);
+      box-shadow:0 2px 8px rgba(0,0,0,0.1); /* Лёгкая тень */
     }
     .product img {
       width:100%;
@@ -50,6 +51,7 @@
       font-size:16px;
       font-weight:600;
       margin-bottom:6px;
+      color:#000; /* Чёрный текст */
     }
     .price {
       font-size:18px;
@@ -81,7 +83,7 @@
       font-size:11px;
       text-transform:uppercase;
       letter-spacing:1px;
-      color:#aaa;
+      color:#666; /* Серый для бейджей */
       margin-bottom:6px;
     }
     .dot {
@@ -93,7 +95,7 @@
     }
     .subtext {
       font-size:12px;
-      color:#888;
+      color:#666; /* Серый для светлой темы */
       margin-bottom:18px;
       text-align:center;
     }
@@ -103,7 +105,7 @@
       padding:16px 14px;
       margin-bottom:16px;
       color:#000;
-      box-shadow:0 18px 45px rgba(0,0,0,0.7);
+      box-shadow:0 4px 12px rgba(0,0,0,0.15); /* Лёгкая тень */
     }
     .banner-title {
       font-size:20px;
@@ -124,11 +126,11 @@
       margin-bottom:8px;
     }
     .category-card {
-      background:#111;
+      background:#fff; /* Белый фон карточки */
       border-radius:16px;
       overflow:hidden;
       cursor:pointer;
-      box-shadow:0 14px 40px rgba(0,0,0,0.7);
+      box-shadow:0 2px 8px rgba(0,0,0,0.1); /* Лёгкая тень */
     }
     .category-thumb {
       width:100%;
@@ -143,10 +145,11 @@
       font-size:15px;
       font-weight:600;
       margin-bottom:4px;
+      color:#000; /* Чёрный текст */
     }
     .category-meta {
       font-size:12px;
-      color:#888;
+      color:#666; /* Серый для мета-информации */
     }
     .cart-fab {
       position:fixed;
@@ -162,7 +165,7 @@
       gap:6px;
       font-size:14px;
       font-weight:600;
-      box-shadow:0 10px 30px rgba(0,0,0,0.7);
+      box-shadow:0 4px 12px rgba(0,0,0,0.15); /* Лёгкая тень */
       cursor:pointer;
       z-index:100;
     }
@@ -171,15 +174,19 @@
     }
     .cart-view {
       margin-top:18px;
+      background:#f5f5f5; /* Светлый фон */
+      color:#000; /* Чёрный текст */
     }
     .cart-view h2 {
       font-size:18px;
       margin-bottom:10px;
+      color:#000; /* Чёрный текст */
     }
     .cart-item {
       display:flex;
       gap:10px;
-      background:#111;
+      background:#fff; /* Белый фон */
+      border:1px solid #ddd; /* Лёгкая граница */
       border-radius:12px;
       padding:10px;
       margin-bottom:10px;
@@ -197,6 +204,7 @@
     .cart-item-name {
       font-weight:600;
       margin-bottom:4px;
+      color:#000; /* Чёрный текст */
     }
     .cart-item-price {
       font-size:13px;
@@ -213,9 +221,9 @@
       width:22px;
       height:22px;
       border-radius:999px;
-      border:none;
-      background:#222;
-      color:#fff;
+      border:1px solid #ddd; /* Лёгкая граница */
+      background:#f5f5f5; /* Светлый фон */
+      color:#000; /* Чёрный текст */
       font-size:16px;
       line-height:20px;
       text-align:center;
@@ -234,8 +242,9 @@
     .cart-summary {
       margin-top:8px;
       padding-top:8px;
-      border-top:1px solid #222;
+      border-top:1px solid #ddd; /* Лёгкая граница */
       font-size:14px;
+      color:#000; /* Чёрный текст */
     }
     .field {
       margin-top:10px;
@@ -244,16 +253,16 @@
     .field label {
       display:block;
       margin-bottom:4px;
-      color:#aaa;
+      color:#666; /* Серый для лейблов */
     }
     .field input,
     .field textarea {
       width:100%;
       padding:8px 10px;
       border-radius:10px;
-      border:none;
-      background:#111;
-      color:#fff;
+      border:1px solid #ddd; /* Лёгкая граница */
+      background:#fff; /* Белый фон */
+      color:#000; /* Чёрный текст */
       font:inherit;
     }
     .field textarea {
@@ -267,16 +276,16 @@
     }
     .small-radio-group label {
       font-size:13px;
-      color:#ddd;
+      color:#333; /* Тёмно-серый для светлой темы */
     }
     .status {
       font-size:12px;
-      color:#888;
+      color:#666; /* Серый для статуса */
       margin-top:6px;
     }
     .btn-secondary {
-      background:#222;
-      color:#fff;
+      background:#e0e0e0; /* Светло-серый фон */
+      color:#000; /* Чёрный текст */
     }
     .hidden {
       display:none !important;
@@ -356,10 +365,42 @@
     const checkoutBtn = document.getElementById('checkout-btn');
     const cartStatusEl = document.getElementById('cart-status');
 
+    // Загружаем данные из data.js (fallback) или через API
     let categories = Array.isArray(window.categories) ? window.categories : [];
     let products = Array.isArray(window.products) ? window.products : [];
     let cart = [];
     let activeCategory = null;
+
+    // Функция для динамической загрузки данных через API (опционально)
+    async function loadDataFromAPI() {
+      try {
+        // Определяем базовый URL сервера
+        const serverBase = window.location.origin;
+        const [catsRes, prodsRes] = await Promise.all([
+          fetch(serverBase + '/api/categories'),
+          fetch(serverBase + '/api/products')
+        ]);
+        
+        if (catsRes.ok && prodsRes.ok) {
+          categories = await catsRes.json();
+          products = await prodsRes.json();
+          console.log('Данные загружены через API');
+          renderCategories();
+          return true;
+        }
+      } catch (e) {
+        console.warn('Не удалось загрузить данные через API, используем data.js', e);
+      }
+      return false;
+    }
+
+    // Пытаемся загрузить через API, если data.js пустой
+    if (!categories.length && !products.length) {
+      loadDataFromAPI().catch(() => {
+        console.warn('Используем данные из data.js');
+        renderCategories();
+      });
+    }
 
     function formatTotal(rub) {
       return `${rub} ₽`;
@@ -549,10 +590,15 @@
     }
 
     function sendOrder() {
-      if (!tg) return;
+      if (!tg) {
+        console.error('Telegram WebApp не доступен');
+        return;
+      }
+      
       const { totalCount, totalSum } = getTotals();
       if (totalCount === 0) {
         cartStatusEl.textContent = 'Корзина пуста';
+        cartStatusEl.style.color = '#ff4b4b';
         return;
       }
 
@@ -562,20 +608,55 @@
       const contactPhone = document.getElementById('contact-phone').value.trim();
       const comment = document.getElementById('order-comment').value.trim();
 
+      // Валидация обязательных полей
+      if (!delivery || !payment) {
+        cartStatusEl.textContent = 'Выберите способ доставки и оплаты';
+        cartStatusEl.style.color = '#ff4b4b';
+        return;
+      }
+
+      if (!contactName || contactName.length < 2) {
+        cartStatusEl.textContent = 'Введите ваше имя (минимум 2 символа)';
+        cartStatusEl.style.color = '#ff4b4b';
+        document.getElementById('contact-name').focus();
+        return;
+      }
+
+      if (!contactPhone || contactPhone.length < 5) {
+        cartStatusEl.textContent = 'Введите номер телефона';
+        cartStatusEl.style.color = '#ff4b4b';
+        document.getElementById('contact-phone').focus();
+        return;
+      }
+
       cartStatusEl.textContent = '';
+      cartStatusEl.style.color = '#888';
 
-      tg.sendData(JSON.stringify({
-        items: cart,
-        total: totalSum,
-        delivery,
-        payment,
-        contactName,
-        contactPhone,
-        comment,
-        user: tg.initDataUnsafe?.user || null
-      }));
+      try {
+        tg.sendData(JSON.stringify({
+          items: cart,
+          total: totalSum,
+          delivery,
+          payment,
+          contactName,
+          contactPhone,
+          comment,
+          user: tg.initDataUnsafe?.user || null
+        }));
 
-      tg.close();
+        // Показываем успешное сообщение перед закрытием
+        cartStatusEl.textContent = 'Заказ отправлен! Спасибо!';
+        cartStatusEl.style.color = '#12ff80';
+        
+        // Закрываем через небольшую задержку
+        setTimeout(() => {
+          tg.close();
+        }, 1000);
+      } catch (e) {
+        console.error('Ошибка отправки заказа', e);
+        cartStatusEl.textContent = 'Ошибка отправки. Попробуйте ещё раз.';
+        cartStatusEl.style.color = '#ff4b4b';
+      }
     }
 
     cartFab.addEventListener('click', showCartView);
@@ -588,7 +669,19 @@
       tg.ready();
     }
 
-    renderCategories();
+    // Инициализация: если данные уже есть из data.js, рендерим сразу
+    // Если нет, ждём загрузки через API
+    if (categories.length > 0 || products.length > 0) {
+      renderCategories();
+    } else {
+      // Показываем загрузку
+      categoriesDiv.innerHTML = '<div style="grid-column:1 / -1; text-align:center; color:#777;">Загрузка каталога...</div>';
+      loadDataFromAPI().then(loaded => {
+        if (!loaded) {
+          renderCategories(); // Fallback на data.js если API не сработал
+        }
+      });
+    }
   </script>
 </body>
 </html>

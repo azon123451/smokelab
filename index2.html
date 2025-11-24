@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Smokelab Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #050505;
+      color: #f5f5f5;
+    }
+    h1 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 6px;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+    input, button, select, textarea {
+      font: inherit;
+    }
+    input, select, textarea {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #111;
+      color: #f5f5f5;
+      width: 100%;
+    }
+    button {
+      border-radius: 8px;
+      border: none;
+      padding: 8px 14px;
+      background: #12ff80;
+      color: #000;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:active {
+      background: #0fd46a;
+      transform: scale(0.98);
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .item {
+      border-radius: 12px;
+      background: #111;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    label {
+      font-size: 12px;
+      color: #aaa;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .small-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .danger {
+      background: #ff4b4b;
+      color: #fff;
+    }
+    .danger:active {
+      background: #e13c3c;
+    }
+    .status {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .password-block {
+      max-width: 320px;
+      margin: 40px auto;
+      background: #111;
+      padding: 16px;
+      border-radius: 12px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="login" class="password-block">
+    <h1>Smokelab Admin</h1>
+    <p style="font-size:13px; color:#ccc; margin-bottom:8px;">
+      Введите пароль администратора для управления каталогом и товарами.
+    </p>
+    <label for="password">Пароль</label>
+    <input type="password" id="password" placeholder="admin пароль">
+    <button style="margin-top:10px; width:100%;" onclick="enter()">Войти</button>
+    <div id="loginStatus" class="status"></div>
+  </div>
+
+  <div id="app" style="display:none;">
+    <h1>Smokelab — Панель управления</h1>
+
+    <div class="btn-group">
+      <button onclick="downloadJSON()">Скачать JSON</button>
+      <button onclick="downloadDataJS()">Скачать data.js</button>
+      <button onclick="saveAllAndUpdate()" style="background:#00d0ff; color:#000;">💾 Сохранить всё и обновить каталог</button>
+    </div>
+    <div id="global-status" class="status" style="margin-top:8px; font-weight:600;"></div>
+
+    <!-- БЛОК КАТАЛОГОВ -->
+    <h2>Каталоги</h2>
+    <div class="top">
+      <span>Управление каталогами (категориями товаров)</span>
+      <button onclick="addCategory()">+ Каталог</button>
+    </div>
+    <div id="categories-list"></div>
+    <button onclick="saveCategories()" style="width:100%; margin-top:8px;">Сохранить каталоги</button>
+    <div id="categories-status" class="status"></div>
+
+    <!-- БЛОК ТОВАРОВ -->
+    <h2>Товары</h2>
+    <div class="top">
+      <div style="flex:1;">
+        <label>Фильтр по каталогу</label>
+        <select id="filterCategory" onchange="renderProducts()">
+          <option value="">Все каталоги</option>
+        </select>
+      </div>
+      <button onclick="addProduct()">+ Товар</button>
+    </div>
+    <div class="row" style="margin-bottom:8px;">
+      <div>
+        <label>Быстрый поиск</label>
+        <input id="search" placeholder="поиск по названию" oninput="renderProducts()">
+      </div>
+    </div>
+    <div id="products-list"></div>
+    <button onclick="saveProducts()" style="width:100%; margin-top:8px;">Сохранить товары</button>
+    <div id="products-status" class="status"></div>
+  </div>
+
+  <script>
+    const API_PRODUCTS = '/api/products';
+    const API_CATEGORIES = '/api/categories';
+    const API_GENERATE_DATAJS = '/api/generate-datajs';
+    const UPLOAD_URL = '/api/upload-image';
+    const ADMIN_PASSWORD = (window.ADMIN_PASSWORD || 'smokelab123');
+
+    let categories = [];
+    let products = [];
+
+    function enter() {
+      const input = document.getElementById('password');
+      const val = input.value.trim();
+      const status = document.getElementById('loginStatus');
+      if (val === ADMIN_PASSWORD) {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        load();
+      } else {
+        status.textContent = 'Неверный пароль';
+      }
+    }
+
+    async function load() {
+      await loadCategories();
+      await loadProducts();
+    }
+
+    async function loadCategories() {
+      const status = document.getElementById('categories-status');
+      status.textContent = 'Загрузка каталогов...';
+      try {
+        const res = await fetch(API_CATEGORIES);
+        categories = await res.json();
+        status.textContent = 'Загружено ' + categories.length + ' каталогов';
+        renderCategories();
+        updateCategoryFilter();
+      } catch (e) {
+        console.error(e);
+        status.textContent = 'Ошибка загрузки каталогов';
+      }
+    }
+
+    async function loadProducts() {
+      const status = document.getElementById('products-status');
+      status.textContent = 'Загрузка товаров...';
+      try {
+        const res = await fetch(API_PRODUCTS);
+        products = await res.json();
+        status.textContent = 'Загружено ' + products.length + ' товаров';
+        renderProducts();
+      } catch (e) {
+        console.error(e);
+        status.textContent = 'Ошибка загрузки товаров';
+      }
+    }
+
+    function renderCategories() {
+      const list = document.getElementById('categories-list');
+      list.innerHTML = '';
+
+      categories.forEach((cat, idx) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="row">
+            <div>
+              <label>Название каталога</label>
+              <input value="${cat.name || ''}" data-field="name" data-idx="${idx}">
+            </div>
+            <div>
+              <label>URL картинки каталога</label>
+              <input value="${cat.img || ''}" data-field="img" data-idx="${idx}">
+              <input type="file" accept="image/*" data-file-idx="${idx}" style="margin-top:4px; font-size:11px;">
+            </div>
+          </div>
+          <div class="actions">
+            <small>ID: ${cat.id}</small>
+            <button class="danger" data-delete="${idx}">Удалить каталог</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+
+      list.querySelectorAll('input:not([type="file"])').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          const field = e.target.dataset.field;
+          categories[idx][field] = e.target.value;
+        });
+      });
+
+      list.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', async (e) => {
+          const idx = Number(e.target.dataset.fileIdx);
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          await uploadCategoryImage(idx, file);
+          e.target.value = '';
+        });
+      });
+
+      list.querySelectorAll('button[data-delete]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = Number(e.target.dataset.delete);
+          if (confirm(`Удалить каталог "${categories[idx].name}"?`)) {
+            categories.splice(idx, 1);
+            renderCategories();
+            updateCategoryFilter();
+          }
+        });
+      });
+    }
+
+    function addCategory() {
+      const name = prompt('Название нового каталога:');
+      if (!name || !name.trim()) return;
+      const maxId = categories.reduce((m, c) => Math.max(m, c.id || 0), 0);
+      categories.push({
+        id: maxId + 1,
+        name: name.trim(),
+        img: ''
+      });
+      renderCategories();
+      updateCategoryFilter();
+    }
+
+    async function saveCategories() {
+      const status = document.getElementById('categories-status');
+      status.textContent = 'Сохранение...';
+      try {
+        const res = await fetch(API_CATEGORIES, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categories })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          status.textContent = 'Каталоги сохранены';
+          updateCategoryFilter();
+          // Автоматически обновляем data.js
+          await generateDataJS();
+        } else {
+          status.textContent = 'Ошибка сохранения каталогов';
+        }
+      } catch (e) {
+        console.error(e);
+        status.textContent = 'Ошибка сохранения каталогов';
+      }
+    }
+
+    async function uploadCategoryImage(idx, file) {
+      const status = document.getElementById('categories-status');
+      status.textContent = 'Загрузка изображения...';
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const res = await fetch(UPLOAD_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.ok && data.url) {
+          categories[idx].img = data.url;
+          status.textContent = 'Картинка загружена';
+          renderCategories();
+        } else {
+          status.textContent = 'Ошибка загрузки изображения';
+        }
+      } catch (e) {
+        console.error(e);
+        status.textContent = 'Ошибка загрузки изображения';
+      }
+    }
+
+    function updateCategoryFilter() {
+      const select = document.getElementById('filterCategory');
+      const current = select.value;
+      select.innerHTML = '<option value="">Все каталоги</option>';
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.name;
+        select.appendChild(opt);
+      });
+      select.value = current;
+    }
+
+    function renderProducts() {
+      const list = document.getElementById('products-list');
+      const filterCategoryId = document.getElementById('filterCategory').value;
+      const search = document.getElementById('search').value.trim().toLowerCase();
+      list.innerHTML = '';
+
+      let filtered = products;
+      if (filterCategoryId) {
+        filtered = filtered.filter(p => String(p.categoryId) === String(filterCategoryId));
+      }
+      if (search) {
+        filtered = filtered.filter(p => (p.name || '').toLowerCase().includes(search));
+      }
+
+      filtered.forEach((p, idx) => {
+        const realIdx = products.indexOf(p);
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="row">
+            <div>
+              <label>Название</label>
+              <input value="${p.name || ''}" data-field="name" data-idx="${realIdx}">
+            </div>
+            <div>
+              <label>Каталог</label>
+              <select data-field="categoryId" data-idx="${realIdx}">
+                <option value="">Без каталога</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>URL картинки товара</label>
+              <input value="${p.img || ''}" data-field="img" data-idx="${realIdx}">
+              <input type="file" accept="image/*" data-file-idx="${realIdx}" style="margin-top:4px; font-size:11px;">
+            </div>
+            <div class="small-row">
+              <div>
+                <label>Цена ₽</label>
+                <input type="number" value="${p.price || 0}" data-field="price" data-idx="${realIdx}">
+              </div>
+              <div>
+                <label>ML</label>
+                <input value="${p.ml || ''}" data-field="ml" data-idx="${realIdx}">
+              </div>
+              <div>
+                <label>NIC %</label>
+                <input value="${p.nic || ''}" data-field="nic" data-idx="${realIdx}">
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <small>ID: ${p.id}</small>
+            <button class="danger" data-delete="${realIdx}">Удалить</button>
+          </div>
+        `;
+        list.appendChild(div);
+
+        const catSelect = div.querySelector('select[data-field="categoryId"]');
+        categories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat.id;
+          opt.textContent = cat.name;
+          if (String(p.categoryId) === String(cat.id)) opt.selected = true;
+          catSelect.appendChild(opt);
+        });
+      });
+
+      list.querySelectorAll('input:not([type="file"]), select').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          const field = e.target.dataset.field;
+          let val = e.target.value;
+          if (field === 'price') {
+            val = Number(val || 0);
+          } else if (field === 'categoryId') {
+            val = val ? Number(val) : null;
+          }
+          products[idx][field] = val;
+        });
+      });
+
+      list.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', async (e) => {
+          const idx = Number(e.target.dataset.fileIdx);
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          await uploadProductImage(idx, file);
+          e.target.value = '';
+        });
+      });
+
+      list.querySelectorAll('button[data-delete]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = Number(e.target.dataset.delete);
+          products.splice(idx, 1);
+          renderProducts();
+        });
+      });
+    }
+
+    function addProduct() {
+      const filterCategoryId = document.getElementById('filterCategory').value;
+      const maxId = products.reduce((m, p) => Math.max(m, p.id || 0), 0);
+      products.push({
+        id: maxId + 1,
+        name: 'Новый товар',
+        price: 0,
+        img: '',
+        ml: '',
+        nic: '',
+        categoryId: filterCategoryId ? Number(filterCategoryId) : null
+      });
+      renderProducts();
+    }
+
+    async function saveProducts() {
+      const status = document.getElementById('products-status');
+      status.textContent = 'Сохранение...';
+      try {
+        const res = await fetch(API_PRODUCTS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ products })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          status.textContent = 'Товары сохранены';
+          // Автоматически обновляем data.js
+          await generateDataJS();
+        } else {
+          status.textContent = 'Ошибка сохранения товаров';
+        }
+      } catch (e) {
+        console.error(e);
+        status.textContent = 'Ошибка сохранения товаров';
+      }
+    }
+
+    // Генерация data.js на сервере
+    async function generateDataJS() {
+      const globalStatus = document.getElementById('global-status');
+      try {
+        globalStatus.textContent = 'Обновление каталога в боте...';
+        const res = await fetch(API_GENERATE_DATAJS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.ok) {
+          globalStatus.textContent = '✅ Каталог обновлён! Mini App теперь использует новые данные.';
+          globalStatus.style.color = '#12ff80';
+          setTimeout(() => {
+            globalStatus.textContent = '';
+          }, 3000);
+        } else {
+          globalStatus.textContent = '❌ Ошибка обновления каталога: ' + (data.error || 'Неизвестная ошибка');
+          globalStatus.style.color = '#ff4b4b';
+        }
+      } catch (e) {
+        console.error(e);
+        globalStatus.textContent = '❌ Ошибка обновления каталога: ' + e.message;
+        globalStatus.style.color = '#ff4b4b';
+      }
+    }
+
+    // Сохранить всё и обновить каталог одной кнопкой
+    async function saveAllAndUpdate() {
+      const globalStatus = document.getElementById('global-status');
+      globalStatus.textContent = 'Сохранение каталогов и товаров...';
+      globalStatus.style.color = '#888';
+      
+      try {
+        // Сохраняем категории
+        const catRes = await fetch(API_CATEGORIES, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categories })
+        });
+        const catData = await catRes.json();
+        
+        if (!catData.ok) {
+          globalStatus.textContent = '❌ Ошибка сохранения каталогов';
+          globalStatus.style.color = '#ff4b4b';
+          return;
+        }
+        
+        // Сохраняем товары
+        const prodRes = await fetch(API_PRODUCTS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ products })
+        });
+        const prodData = await prodRes.json();
+        
+        if (!prodData.ok) {
+          globalStatus.textContent = '❌ Ошибка сохранения товаров';
+          globalStatus.style.color = '#ff4b4b';
+          return;
+        }
+        
+        // Обновляем фильтр категорий
+        updateCategoryFilter();
+        
+        // Генерируем data.js
+        await generateDataJS();
+        
+      } catch (e) {
+        console.error(e);
+        globalStatus.textContent = '❌ Ошибка: ' + e.message;
+        globalStatus.style.color = '#ff4b4b';
+      }
+    }
+
+    async function uploadProductImage(idx, file) {
+      const status = document.getElementById('products-status');
+      status.textContent = 'Загрузка изображения...';
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const res = await fetch(UPLOAD_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.ok && data.url) {
+          products[idx].img = data.url;
+          status.textContent = 'Картинка загружена';
+          renderProducts();
+        } else {
+          status.textContent = 'Ошибка загрузки изображения';
+        }
+      } catch (e) {
+        console.error(e);
+        status.textContent = 'Ошибка загрузки изображения';
+      }
+    }
+
+    function downloadJSON() {
+      const data = JSON.stringify({ categories, products }, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `smokelab-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadDataJS() {
+      // Определяем базовый URL сервера из текущего окна
+      const serverBase = window.location.origin;
+      
+      // Функция для преобразования относительных путей в полные URL
+      function toFullUrl(path) {
+        if (!path) return '';
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+          return path; // Уже полный URL
+        }
+        if (path.startsWith('/')) {
+          return serverBase + path; // Относительный от корня
+        }
+        return path; // Возвращаем как есть
+      }
+      
+      // Копируем данные и преобразуем пути картинок
+      const categoriesWithFullUrls = categories.map(cat => ({
+        ...cat,
+        img: toFullUrl(cat.img)
+      }));
+      
+      const productsWithFullUrls = products.map(prod => ({
+        ...prod,
+        img: toFullUrl(prod.img)
+      }));
+      
+      const header = '// Этот файл сгенерирован из админ-панели Smokelab\n';
+      const categoriesCode = 'const categories = ' + JSON.stringify(categoriesWithFullUrls, null, 2) + ';\n\n';
+      const productsCode = 'const products = ' + JSON.stringify(productsWithFullUrls, null, 2) + ';\n';
+      const content = header + categoriesCode + productsCode;
+      const blob = new Blob([content], { type: 'text/javascript' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `data-${new Date().toISOString().split('T')[0]}.js`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
+
