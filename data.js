@@ -1,20 +1,26 @@
-const products = [
+// Этот файл сгенерирован из админ-панели Smokelab
+const categories = [
     {
       "id": 1,
-      "name": "Elf Bar 5000 — Blue Razz Ice",
-      "price": 1290,
-      "img": "/uploads/1763939845398-488905719.png",
-      "ml": "13 ml",
-      "nic": "5%",
-      "category": "одноразки"
+      "name": "одноразки",
+      "img": "/uploads/1763949966266-660328927.png"
     },
     {
       "id": 2,
-      "name": "Новый товар",
-      "price": 0,
-      "img": "",
-      "ml": "",
-      "nic": "",
-      "category": "жижа"
+      "name": "под-системы",
+      "img": "/uploads/1763949977323-510155835.png"
     }
   ];
+  
+  const products = [
+    {
+      "id": 1,
+      "name": "Новый товар",
+      "price": 150,
+      "img": "/uploads/1763949988142-18941424.png",
+      "ml": "30",
+      "nic": "2",
+      "categoryId": 1
+    }
+  ];
+  

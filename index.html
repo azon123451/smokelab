@@ -237,25 +237,6 @@
       border-top:1px solid #222;
       font-size:14px;
     }
-    .catalog-card img {
-      height:160px;
-    }
-    .catalog-name {
-      font-size:15px;
-      font-weight:600;
-      margin-bottom:4px;
-    }
-    .catalog-meta {
-      font-size:12px;
-      color:#aaa;
-      margin-bottom:10px;
-    }
-    .catalog-btn {
-      width:100%;
-      padding:9px 12px;
-      border-radius:10px;
-      font-size:14px;
-    }
     .field {
       margin-top:10px;
       font-size:13px;
@@ -304,16 +285,16 @@
 </head>
 <body>
   <header>VAPEHOUSE</header>
-  <div class="subtext"></div>
+  <div class="subtext">Минималистичный вейп-шоп прямо в Telegram</div>
 
   <div class="banner">
-    <div class="banner-title"></div>
+    <div class="banner-title">Smokelab</div>
     <div class="banner-sub">Вейпы, девайсы и жидкости — быстро и удобно в Telegram</div>
   </div>
 
   <div id="categories" class="categories"></div>
 
-  <div id="products" class="products-grid"></div>
+  <div id="products" class="products-grid hidden"></div>
 
   <div id="cart-view" class="cart-view hidden">
     <h2>Корзина</h2>
@@ -352,7 +333,7 @@
     </div>
 
     <button id="checkout-btn">Оформить заказ</button>
-    <button id="back-to-catalog" class="btn-secondary" style="margin-top:8px;">← Вернуться в каталог</button>
+    <button id="back-to-catalog" class="btn-secondary" style="margin-top:8px;">← Вернуться к каталогам</button>
 
     <div id="cart-status" class="status"></div>
   </div>
@@ -375,9 +356,10 @@
     const checkoutBtn = document.getElementById('checkout-btn');
     const cartStatusEl = document.getElementById('cart-status');
 
+    let categories = Array.isArray(window.categories) ? window.categories : [];
     let products = Array.isArray(window.products) ? window.products : [];
     let cart = [];
-    let activeCategory = 'all';
+    let activeCategory = null;
 
     function formatTotal(rub) {
       return `${rub} ₽`;
@@ -389,76 +371,54 @@
       return { totalCount, totalSum };
     }
 
-    function getCategoryList() {
-      const map = new Map();
-      products.forEach(p => {
-        const name = (p.category || 'Каталог').trim() || 'Каталог';
-        if (!map.has(name)) {
-          map.set(name, {
-            name,
-            img: p.categoryImg || p.img || '',
-            count: 1,
-          });
-        } else {
-          map.get(name).count += 1;
-        }
-      });
-      return Array.from(map.values());
-    }
-
-    function openCategory(name) {
-      activeCategory = name;
-      renderProducts();
-      productsDiv.classList.remove('hidden');
-      categoriesDiv.classList.add('hidden');
-      cartViewEl.classList.add('hidden');
-    }
-
     function renderCategories() {
-      const list = getCategoryList();
       categoriesDiv.innerHTML = '';
 
-      if (!list.length) {
-        categoriesDiv.innerHTML = '<div style="grid-column:1 / -1; text-align:center; color:#777;">Каталог пуст</div>';
+      if (!categories.length) {
+        categoriesDiv.innerHTML = '<div style="grid-column:1 / -1; text-align:center; color:#777;">Нет каталогов</div>';
         return;
       }
 
-      list.forEach(cat => {
+      categories.forEach(cat => {
+        const count = products.filter(p => p.categoryId === cat.id).length;
         const div = document.createElement('div');
         div.className = 'category-card';
         div.innerHTML = `
-          <img class="category-thumb" src="${cat.img || ''}" alt="${cat.name}">
+          <img class="category-thumb" src="${cat.img || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${cat.name}">
           <div class="category-info">
             <div class="category-title">${cat.name}</div>
-            <div class="category-meta">${cat.count} товар(ов)</div>
+            <div class="category-meta">${count} товаров</div>
           </div>
         `;
-        div.addEventListener('click', () => openCategory(cat.name));
+        div.addEventListener('click', () => openCategory(cat.id));
         categoriesDiv.appendChild(div);
       });
+    }
 
-      categoriesDiv.classList.remove('hidden');
-      productsDiv.classList.add('hidden');
+    function openCategory(categoryId) {
+      activeCategory = categoryId;
+      categoriesDiv.classList.add('hidden');
+      productsDiv.classList.remove('hidden');
+      renderProducts();
     }
 
     function renderProducts() {
       productsDiv.innerHTML = '';
-      const list = activeCategory === 'all'
-        ? products
-        : products.filter(p => (p.category || 'Другие') === activeCategory);
+      const list = products.filter(p => p.categoryId === activeCategory);
 
       if (!list.length) {
-        productsDiv.innerHTML = '<div style="grid-column:1 / -1; text-align:center; color:#777;">В этой категории пока пусто</div>';
+        productsDiv.innerHTML = '<div style="grid-column:1 / -1; text-align:center; color:#777;">В этом каталоге пока пусто</div>';
         return;
       }
 
       list.forEach(p => {
         const div = document.createElement('div');
         div.className = 'product';
+        const catName = categories.find(c => c.id === p.categoryId)?.name || 'Товар';
         div.innerHTML = `
-          <img src="${p.img}" alt="${p.name}">
+          <img src="${p.img || 'https://via.placeholder.com/300x300?text=No+Image'}" alt="${p.name}">
           <div class="info">
-            <div class="badge"><span class="dot"></span><span>${p.category || 'Каталог'}</span></div>
+            <div class="badge"><span class="dot"></span><span>${catName}</span></div>
             <div class="name">${p.name}</div>
             <div class="price">${p.price} ₽</div>
             <button type="button" data-id="${p.id}">В корзину</button>
@@ -538,6 +498,7 @@
       cartViewEl.classList.add('hidden');
       productsDiv.classList.add('hidden');
       categoriesDiv.classList.remove('hidden');
+      activeCategory = null;
     }
 
     function renderCartView() {
@@ -627,13 +588,7 @@
       tg.ready();
     }
 
-    // название / подзаголовок можно подставлять из настроек позже
-    document.querySelector('header').textContent = 'VAPEHOUSE';
-    document.querySelector('.banner-title').textContent = 'SMOKELAB';
-
     renderCategories();
   </script>
 </body>
 </html>
-
-
