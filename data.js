@@ -1,26 +1,52 @@
-// Этот файл сгенерирован из админ-панели Smokelab
+// Этот файл сгенерирован из vape-bot/categories.json и vape-bot/products.json
 const categories = [
-    {
-      "id": 1,
-      "name": "одноразки",
-      "img": "http://72.56.80.76/uploads/1763949966266-660328927.png"
-    },
-    {
-      "id": 2,
-      "name": "под-системы",
-      "img": "http://72.56.80.76/uploads/1763949977323-510155835.png"
-    }
-  ];
-  
-  const products = [
-    {
-      "id": 1,
-      "name": "Новый товар",
-      "price": 150,
-      "img": "http://72.56.80.76/uploads/1763949988142-18941424.png",
-      "ml": "30",
-      "nic": "2",
-      "categoryId": 1
-    }
-  ];
-  
+  {
+    "id": 1,
+    "name": "одноразки",
+    "img": ""
+  },
+  {
+    "id": 2,
+    "name": "под-системы",
+    "img": ""
+  }
+];
+
+const products = [
+  {
+    "id": 1,
+    "name": "Elf Bar 5000 — Blue Razz Ice",
+    "price": 1290,
+    "img": "https://i.ibb.co/0jZJ0Z0/elfbar-blue.jpg",
+    "ml": "13 ml",
+    "nic": "5%",
+    "categoryId": 1
+  },
+  {
+    "id": 2,
+    "name": "GeekVape Aegis Boost Pro",
+    "price": 4900,
+    "img": "https://i.ibb.co/5Y5Y5Y5/geekvape.jpg",
+    "ml": "",
+    "nic": "",
+    "categoryId": 2
+  },
+  {
+    "id": 3,
+    "name": "HQD Cuvie Plus — Grapey",
+    "price": 890,
+    "img": "https://i.ibb.co/3T3T3T3/hqd.jpg",
+    "ml": "5 ml",
+    "nic": "5%",
+    "categoryId": 1
+  },
+  {
+    "id": 4,
+    "name": "VOOPOO Drag X",
+    "price": 4200,
+    "img": "https://i.ibb.co/8X8X8X8/dragx.jpg",
+    "ml": "",
+    "nic": "",
+    "categoryId": 2
+  }
+];
