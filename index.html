@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>VapeHouse</title>
+  <title>Smokelab</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -117,23 +117,36 @@
       opacity:0.9;
     }
     .categories {
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:12px;
+      margin-top:8px;
       margin-bottom:8px;
     }
-    .categories button {
-      padding:6px 10px;
-      border-radius:999px;
-      border:none;
-      font-size:12px;
+    .category-card {
       background:#111;
-      color:#eee;
+      border-radius:16px;
+      overflow:hidden;
       cursor:pointer;
+      box-shadow:0 14px 40px rgba(0,0,0,0.7);
     }
-    .categories button.active {
-      background:#12ff80;
-      color:#000;
+    .category-thumb {
+      width:100%;
+      height:140px;
+      object-fit:cover;
+      display:block;
+    }
+    .category-info {
+      padding:10px 12px 12px;
+    }
+    .category-title {
+      font-size:15px;
+      font-weight:600;
+      margin-bottom:4px;
+    }
+    .category-meta {
+      font-size:12px;
+      color:#888;
     }
     .cart-fab {
       position:fixed;
@@ -224,6 +237,25 @@
       border-top:1px solid #222;
       font-size:14px;
     }
+    .catalog-card img {
+      height:160px;
+    }
+    .catalog-name {
+      font-size:15px;
+      font-weight:600;
+      margin-bottom:4px;
+    }
+    .catalog-meta {
+      font-size:12px;
+      color:#aaa;
+      margin-bottom:10px;
+    }
+    .catalog-btn {
+      width:100%;
+      padding:9px 12px;
+      border-radius:10px;
+      font-size:14px;
+    }
     .field {
       margin-top:10px;
       font-size:13px;
@@ -272,10 +304,10 @@
 </head>
 <body>
   <header>VAPEHOUSE</header>
-  <div class="subtext">Минималистичный вейп-шоп прямо в Telegram</div>
+  <div class="subtext"></div>
 
   <div class="banner">
-    <div class="banner-title">Smokelab</div>
+    <div class="banner-title"></div>
     <div class="banner-sub">Вейпы, девайсы и жидкости — быстро и удобно в Telegram</div>
   </div>
 
@@ -357,33 +389,56 @@
       return { totalCount, totalSum };
     }
 
+    function getCategoryList() {
+      const map = new Map();
+      products.forEach(p => {
+        const name = (p.category || 'Каталог').trim() || 'Каталог';
+        if (!map.has(name)) {
+          map.set(name, {
+            name,
+            img: p.categoryImg || p.img || '',
+            count: 1,
+          });
+        } else {
+          map.get(name).count += 1;
+        }
+      });
+      return Array.from(map.values());
+    }
+
+    function openCategory(name) {
+      activeCategory = name;
+      renderProducts();
+      productsDiv.classList.remove('hidden');
+      categoriesDiv.classList.add('hidden');
+      cartViewEl.classList.add('hidden');
+    }
+
     function renderCategories() {
-      const categories = Array.from(
-        new Set(products.map(p => (p.category || 'Другие')).filter(Boolean))
-      );
+      const list = getCategoryList();
       categoriesDiv.innerHTML = '';
 
-      const allBtn = document.createElement('button');
-      allBtn.textContent = 'Все';
-      allBtn.className = activeCategory === 'all' ? 'active' : '';
-      allBtn.addEventListener('click', () => {
-        activeCategory = 'all';
-        renderCategories();
-        renderProducts();
-      });
-      categoriesDiv.appendChild(allBtn);
+      if (!list.length) {
+        categoriesDiv.innerHTML = '<div style="grid-column:1 / -1; text-align:center; color:#777;">Каталог пуст</div>';
+        return;
+      }
 
-      categories.forEach(cat => {
-        const btn = document.createElement('button');
-        btn.textContent = cat;
-        if (activeCategory === cat) btn.classList.add('active');
-        btn.addEventListener('click', () => {
-          activeCategory = cat;
-          renderCategories();
-          renderProducts();
-        });
-        categoriesDiv.appendChild(btn);
+      list.forEach(cat => {
+        const div = document.createElement('div');
+        div.className = 'category-card';
+        div.innerHTML = `
+          <img class="category-thumb" src="${cat.img || ''}" alt="${cat.name}">
+          <div class="category-info">
+            <div class="category-title">${cat.name}</div>
+            <div class="category-meta">${cat.count} товар(ов)</div>
+          </div>
+        `;
+        div.addEventListener('click', () => openCategory(cat.name));
+        categoriesDiv.appendChild(div);
       });
+
+      categoriesDiv.classList.remove('hidden');
+      productsDiv.classList.add('hidden');
     }
 
     function renderProducts() {
@@ -481,7 +536,7 @@
 
     function backToCatalog() {
       cartViewEl.classList.add('hidden');
-      productsDiv.classList.remove('hidden');
+      productsDiv.classList.add('hidden');
       categoriesDiv.classList.remove('hidden');
     }
 
@@ -572,8 +627,11 @@
       tg.ready();
     }
 
+    // название / подзаголовок можно подставлять из настроек позже
+    document.querySelector('header').textContent = 'VAPEHOUSE';
+    document.querySelector('.banner-title').textContent = 'SMOKELAB';
+
     renderCategories();
-    renderProducts();
   </script>
 </body>
 </html>
